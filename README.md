@@ -139,9 +139,22 @@ pip install databricks-sdk
 
 ### Authenticate
 
+The CLI needs credentials before it can interact with your workspace.
+
 ```bash
-databricks auth login --host https://<your-workspace>.cloud.databricks.com
+# Authenticate with your workspace URL
+databricks auth login --host https://dbc-97d2bf38-c66c.cloud.databricks.com
+
+# This opens a browser for OAuth login.
+# For CI/CD or headless environments, use a personal access token instead:
+export DATABRICKS_HOST=https://dbc-97d2bf38-c66c.cloud.databricks.com
+export DATABRICKS_TOKEN=dapiXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# Verify authentication
+databricks auth describe
 ```
+
+Generate a personal access token from **Settings > Developer > Access tokens** in your Databricks workspace.
 
 ### Deploy to Development
 
