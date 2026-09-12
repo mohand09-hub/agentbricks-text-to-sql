@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────
+# Setup Job Resource — text-to-sql-agent
+# ─────────────────────────────────────────────────────────────
+# Defines a Databricks job that runs the Supervisor Agent setup
+# script. The job is triggered manually (no schedule) and runs
+# on serverless compute.
+#
+# The setup script:
+#   1. Creates or finds an existing Supervisor Agent
+#   2. Adds a Genie Space tool as the text-to-SQL subagent
+#   3. Adds quality examples (requires embedding model)
+#
+# Prerequisites (run setup/prerequisites.sql first):
+#   - UC catalog + schemas must exist
+#   - Genie Space must be created and published in the target workspace
+#   - qwen3-embedding-0-6b model must be enabled for examples
+# ─────────────────────────────────────────────────────────────
+
+resources:
+  jobs:
+    setup_supervisor_agent:
+      name: setup-text-to-sql-agent
+
+      # Manual trigger only — no schedule.
+      # Run via: databricks bundle run setup_supervisor_agent --target prod
+      trigger:
+        manual: true
+
+      tasks:
+        - task_key: setup_agent
+          spark_python_task:
+            python_file: ../scripts/setup_supervisor_agent.py
+            parameters:
+              - --config
+              - ../config/agent_config.json
+              - --genie-space-id
+              - ${var.genie_space_id}
+              - --agent-display-name
+              - ${var.agent_display_name}
+              - --catalog
+              - ${var.catalog}
+              - --silver-schema
+              - ${var.silver_schema}
+              - --gold-schema
+              - ${var.gold_schema}
+          environment_key: agent_setup_env
+
+      environments:
+        - environment_key: agent_setup_env
+          spec:
+            environment_version: '2'
+            dependencies:
+              - databricks-sdk

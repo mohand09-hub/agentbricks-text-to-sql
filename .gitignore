@@ -1,0 +1,13 @@
+# Databricks bundle deployment artifacts
+.bundle/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Databricks
+*.ipynb_checkpoints/
+
+# Local config overrides (do not commit environment-specific values)
+config/*.local.json

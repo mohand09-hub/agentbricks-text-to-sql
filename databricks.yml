@@ -1,0 +1,58 @@
+# ─────────────────────────────────────────────────────────────
+# Databricks Automation Bundle — text-to-sql-agent
+# Supervisor Agent: NSE Stock Research Text-to-SQL
+# ─────────────────────────────────────────────────────────────
+# Deploys a Supervisor Agent with a Genie Space subagent
+# for natural-language querying of NSE stock market data.
+#
+# Deploy:
+#   databricks bundle deploy --target dev    # development
+#   databricks bundle deploy --target prod   # production
+# ─────────────────────────────────────────────────────────────
+
+bundle:
+  name: text-to-sql-agent
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog containing the data schemas
+    default: nse_stock_research
+
+  silver_schema:
+    description: Schema name for silver (cleaned/refined) tables
+    default: silver
+
+  gold_schema:
+    description: Schema name for gold (aggregated) tables
+    default: gold
+
+  genie_space_id:
+    description: Genie Space ID that the Supervisor Agent uses as its text-to-SQL subagent
+    default: 01f1ae96b6b21b658c75b4c44c6dae06
+
+  agent_display_name:
+    description: Display name for the Supervisor Agent
+    default: NSE Stock Research Assistant
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      genie_space_id: 01f1ae96b6b21b658c75b4c44c6dae06
+
+  prod:
+    mode: production
+    variables:
+      # Override these for the production workspace.
+      # The Genie Space ID is workspace-specific — create one in prod
+      # and set the ID here or pass via --var="genie_space_id=..."
+      genie_space_id: ${var.genie_space_id}
+      agent_display_name: NSE Stock Research Assistant (Prod)
+      # Override catalog/schema names if they differ in prod:
+      # catalog: stock_research_prod
+      # silver_schema: silver
+      # gold_schema: gold

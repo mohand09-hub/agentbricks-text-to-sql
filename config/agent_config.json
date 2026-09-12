@@ -1,0 +1,33 @@
+{
+  "display_name": "NSE Stock Research Assistant",
+  "description": "Natural language interface to query NSE stock market data.",
+  "instructions": "You are a stock market analyst for NSE data.\n\nQuery company profiles, prices, fundamentals, news, and sector analysis.\nUse clear SQL patterns, meaningful filters, and cite data sources.",
+  "tool": {
+    "tool_id": "nse-stock-sql",
+    "description": "Query NSE stock data: companies, prices, fundamentals, news.",
+    "genie_space_id": "01f1ae96b6b21b658c75b4c44c6dae06"
+  },
+  "examples": [
+    {
+      "question": "Show me the top 10 companies by market cap",
+      "guidelines": [
+        "Query {{catalog}}.{{silver_schema}}.companies, order by market_cap DESC, limit 10",
+        "Include ticker, company_name, sector, market_cap"
+      ]
+    },
+    {
+      "question": "Which stocks moved more than 5% today?",
+      "guidelines": [
+        "Query {{catalog}}.{{gold_schema}}.gold_price_daily_agg",
+        "Filter ABS(day_over_day_pct) > 5.0"
+      ]
+    },
+    {
+      "question": "What's the average PE ratio by sector?",
+      "guidelines": [
+        "Query {{catalog}}.{{silver_schema}}.companies",
+        "Group by sector, calculate AVG(trailing_pe)"
+      ]
+    }
+  ]
+}
