@@ -113,10 +113,26 @@ print(w.api_client.do("GET", "/api/2.1/supervisor-agents"))
 
 ### Install the Databricks CLI
 
+The `databricks bundle` command requires the modern Databricks CLI (v0.200+).
+
 ```bash
-# If not already installed
+# macOS (Homebrew)
+brew install databricks
+
+# Or install via pip
+pip install databricks-cli
+
+# Or download the binary directly
+curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+# Verify installation
+databricks --version
+```
+
+The Python SDK (`databricks-sdk`) is also needed if running the setup script standalone:
+
+```bash
 pip install databricks-sdk
-# Download CLI from: https://docs.databricks.com/dev-tools/cli/databricks-cli.html
 ```
 
 ### Authenticate
