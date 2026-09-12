@@ -21,10 +21,9 @@ resources:
     setup_supervisor_agent:
       name: setup-text-to-sql-agent
 
-      # Manual trigger only — no schedule.
+      # Manual trigger only — no schedule needed.
+      # A job without a trigger field is manual by default.
       # Run via: databricks bundle run setup_supervisor_agent --target prod
-      trigger:
-        manual: true
 
       tasks:
         - task_key: setup_agent
