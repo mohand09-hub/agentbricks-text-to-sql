@@ -39,6 +39,8 @@ text-to-sql-agent/
 │   └── agent_config.json              # Agent metadata, tool config, examples
 ├── setup/
 │   └── prerequisites.sql              # Pre-deploy SQL: catalog/schema checks
+├── .github/workflows/
+│   └── deploy.yml                     # CI/CD: validate, deploy, run setup job
 ├── setup_supervisor_agent.py          # Original standalone script (dev)
 ├── .gitignore
 └── README.md
@@ -179,6 +181,49 @@ databricks bundle run setup_supervisor_agent --target prod
 ```
 
 The job is idempotent — it will find existing agents and tools and skip creation if they already exist.
+
+## CI/CD with GitHub Actions
+
+This repo includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automates validation, deployment, and job execution.
+
+### Triggers
+
+* **Push to `main`** — validates and deploys to the `dev` target automatically
+* **Manual dispatch** — choose `dev` or `prod` target from the GitHub Actions UI
+
+### Required GitHub Secrets
+
+Set these in **Settings > Secrets and variables > Actions**:
+
+| Secret | Description |
+| --- | --- |
+| `DATABRICKS_HOST` | Workspace URL (e.g., `https://dbc-97d2bf38-c66c.cloud.databricks.com`) |
+| `DATABRICKS_TOKEN` | Databricks personal access token (generate from **User Settings > Access Tokens**) |
+| `GENIE_SPACE_ID_PROD` | (Optional) Prod Genie Space ID — only needed if different from dev |
+
+### Workflow Steps
+
+1. **Checkout** — pulls the latest code
+2. **Setup Databricks CLI** — installs the modern CLI via `databricks/setup-cli@main`
+3. **Validate** — runs `databricks bundle validate --strict --target <target>`
+4. **Deploy** — runs `databricks bundle deploy --target <target>` (passes `GENIE_SPACE_ID_PROD` for prod if set)
+5. **Run setup job** — runs `databricks bundle run setup_supervisor_agent --target <target>`
+
+### Manual Deployment
+
+1. Go to **Actions** tab in the GitHub repo
+2. Select **Deploy Text-to-SQL Agent** workflow
+3. Click **Run workflow**
+4. Choose `dev` or `prod` target
+5. Click **Run workflow**
+
+### Token Generation
+
+To create a Databricks personal access token for CI/CD:
+
+1. Go to **Settings** > **Developer** > **Access tokens** in your Databricks workspace
+2. Click **Generate new token**
+3. Copy the token value and add it as the `DATABRICKS_TOKEN` GitHub secret
 
 ## Configuration
 

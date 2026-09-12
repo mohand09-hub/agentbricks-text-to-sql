@@ -1,0 +1,70 @@
+name: Deploy Text-to-SQL Agent
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Determine target
+        id: target
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "target=${{ github.event.inputs.target }}" >> $GITHUB_OUTPUT
+          else
+            echo "target=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle validate --strict --target ${{ steps.target.outputs.target }}
+
+      - name: Deploy bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          TARGET=${{ steps.target.outputs.target }}
+
+          if [ "$TARGET" = "prod" ]; then
+            # Override genie_space_id for prod if the secret is set
+            if [ -n "${{ secrets.GENIE_SPACE_ID_PROD }}" ]; then
+              databricks bundle deploy --target prod \
+                --var="genie_space_id=${{ secrets.GENIE_SPACE_ID_PROD }}"
+            else
+              databricks bundle deploy --target prod
+            fi
+          else
+            databricks bundle deploy --target dev
+          fi
+
+      - name: Run setup job
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle run setup_supervisor_agent --target ${{ steps.target.outputs.target }}
